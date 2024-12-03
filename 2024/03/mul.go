@@ -44,7 +44,7 @@ func findMuls(f string, dos bool) []string {
 
 func mul(m string) int {
 	var a, b int
-	fmt.Sscanf(string(m), "mul(%d,%d)", &a, &b)
+	fmt.Sscanf(m, "mul(%d,%d)", &a, &b)
 	return a * b
 }
 
