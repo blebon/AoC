@@ -10,7 +10,7 @@ import (
 func readColumns(input string) ([]int, []int, error) {
 	log := logrus.New()
 
-	fields, err := util.ReadSpaceSeparatedFile(input)
+	fields, err := util.ReadSpaceSeparatedFileToInt(input)
 	if err != nil {
 		log.Errorf("error reading input file: %v", err)
 		return nil, nil, err

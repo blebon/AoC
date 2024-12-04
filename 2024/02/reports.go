@@ -6,7 +6,7 @@ import (
 )
 
 func readColumns(input string) ([][]int, error) {
-	return util.ReadSpaceSeparatedFile(input)
+	return util.ReadSpaceSeparatedFileToInt(input)
 }
 
 func isSafe(report []int) bool {

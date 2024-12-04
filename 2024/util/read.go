@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-// readFile reads lines of text file f into slices of strings.
-func readFile(f string) ([]string, error) {
+// ReadFile reads lines of text file f into slices of strings.
+// It returns any error it encounters.
+func ReadFile(f string) ([]string, error) {
 	file, err := os.Open(f)
 	if err != nil {
 		return nil, err
@@ -25,7 +26,31 @@ func readFile(f string) ([]string, error) {
 	return records, nil
 }
 
+// readLine reads the text file f and flattens it as a
+// single string. It returns any error it encounters.
+func ReadLine(f string) (string, error) {
+	records, err := ReadFile(f)
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(records, ""), nil
+}
+
+// stringsToStrings converts slices of strings to a matrix of ints.
+// It returns any error it encounters.
+func stringsToStrings(s []string) ([][]string, error) {
+	res := make([][]string, 0, len(s))
+
+	for _, line := range s {
+		l := strings.Fields(line)
+		res = append(res, l)
+	}
+
+	return res, nil
+}
+
 // stringsToInts converts slices of strings to a matrix of ints.
+// It returns any error it encounters.
 func stringsToInts(s []string) ([][]int, error) {
 	res := make([][]int, 0, len(s))
 
@@ -45,10 +70,20 @@ func stringsToInts(s []string) ([][]int, error) {
 	return res, nil
 }
 
-// ReadSpaceSeparatedFile reads the text file `input` to a matrix
+// ReadSpaceSeparatedFileToStr reads the text file `input` to a matrix
+// of strings. It returns any error it encounters.
+func ReadSpaceSeparatedFileToStr(input string) ([][]string, error) {
+	records, err := ReadFile(input)
+	if err != nil {
+		return nil, err
+	}
+	return stringsToStrings(records)
+}
+
+// ReadSpaceSeparatedFileToInt reads the text file `input` to a matrix
 // of integers. It returns any error it encounters.
-func ReadSpaceSeparatedFile(input string) ([][]int, error) {
-	records, err := readFile(input)
+func ReadSpaceSeparatedFileToInt(input string) ([][]int, error) {
+	records, err := ReadFile(input)
 	if err != nil {
 		return nil, err
 	}
