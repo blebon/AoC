@@ -44,9 +44,6 @@ func getMiddleSum(f string, ordered bool) int {
 			if s[0] == a && s[1] == b {
 				return -1
 			}
-			if s[0] == b && s[1] == a {
-				return 1
-			}
 		}
 		return 0
 	}
