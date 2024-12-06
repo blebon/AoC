@@ -27,7 +27,7 @@ func getBoard(f string) search {
 
 	lines, err := util.ReadFile(f)
 	if err != nil {
-		log.Errorf("error reading input file: %v", err)
+		log.Fatalf("error reading input file: %v", err)
 	}
 
 	board := map[image.Point]rune{}
