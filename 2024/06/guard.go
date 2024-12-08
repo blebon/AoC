@@ -25,7 +25,6 @@ type walk struct {
 	Width             int
 	Height            int
 	Count             int
-	// Steps             int
 }
 
 func getWalk(f string) walk {
@@ -39,7 +38,6 @@ func getWalk(f string) walk {
 	w := walk{
 		File:  f,
 		Count: 0,
-		// Steps: 0,
 	}
 	board := map[image.Point]rune{}
 	visitedDir := map[image.Point][]int{}
