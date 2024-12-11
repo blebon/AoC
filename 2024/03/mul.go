@@ -5,11 +5,10 @@ import (
 	"regexp"
 
 	"github.com/blebon/AoC/2024/util"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func findMuls(f string, dos bool) []string {
-	log := logrus.New()
 
 	l, err := util.ReadLine(f)
 	if err != nil {

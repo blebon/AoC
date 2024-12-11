@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/blebon/AoC/2024/util"
+	"github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -74,6 +75,7 @@ func compress(blocks []rune) {
 }
 
 func compressNoFrag(a []rune) {
+	bar := progressbar.Default(int64(len(a)))
 	for i := len(a) - 1; i >= 0; i-- {
 		k, size := findLastBlockSize(a, i)
 		i = max(k, 0)
@@ -82,7 +84,7 @@ func compressNoFrag(a []rune) {
 			swapBlock(a, i, j, size)
 			log.Debugf("Updated slice by moving [%2d:%2d] to [%2d:%2d]: %v", i, i+size, j, j+size, print(a))
 		}
-
+		bar.Add(1)
 	}
 }
 
