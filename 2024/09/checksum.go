@@ -1,10 +1,11 @@
 package main
 
 import (
+	"slices"
 	"strings"
+	"sync"
 
 	"github.com/blebon/AoC/2024/util"
-	"github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -38,12 +39,14 @@ func getDiskmap(f string) string {
 	return strings.TrimSpace(l)
 }
 
+type runes []rune
+
 func calculateChecksum(blocks []rune, noFrag bool) int64 {
-	a := append(make([]rune, 0, len(blocks)), blocks...)
+	a := append(make(runes, 0, len(blocks)), blocks...)
 	if noFrag {
-		compressNoFrag(a)
+		a.compressNoFrag()
 	} else {
-		compress(a)
+		a.compress()
 	}
 	r := int64(0)
 	for i, d := range a {
@@ -55,7 +58,7 @@ func calculateChecksum(blocks []rune, noFrag bool) int64 {
 	return r
 }
 
-func compress(blocks []rune) {
+func (blocks runes) compress() {
 	i := 0
 	j := len(blocks) - 1
 
@@ -74,24 +77,58 @@ func compress(blocks []rune) {
 	}
 }
 
-func compressNoFrag(a []rune) {
-	bar := progressbar.Default(int64(len(a)))
-	for i := len(a) - 1; i >= 0; i-- {
-		k, size := findLastBlockSize(a, i)
-		i = max(k, 0)
-		j := findFirstSpaceBlock(a, size, i)
-		if j >= 0 {
-			swapBlock(a, i, j, size)
-			log.Debugf("Updated slice by moving [%2d:%2d] to [%2d:%2d]: %v", i, i+size, j, j+size, print(a))
-		}
-		bar.Add(1)
-	}
+type space struct {
+	i    int
+	size int
 }
 
-func findLastBlockSize(a []rune, i int) (int, int) {
+type spaces []*space
+
+func (a runes) compressNoFrag() {
+	s := a.findSpaces()
+
+	var wg sync.WaitGroup
+	for i, size := len(a)-1, 0; i >= 0 && len(s) > 0 && s[0].i < i; i-- {
+		i, size = a.findLastBlockSize(i)
+		if size > 0 {
+			j := s.findFirstSpaceBlock(size, i)
+			if j >= 0 {
+				wg.Add(1)
+				log.Debugf("Sending rune #%v %v with size %d j %d and i %d", int(a[i]-'0'), string(a[i]), size, j, i)
+				go a.swapBlock(i, j, size, &wg)
+			}
+		}
+	}
+	log.Debugf("Waiting for all swaps")
+	wg.Wait()
+	log.Debugf("Swaps complete")
+}
+
+func (a runes) findSpaces() spaces {
+	r := make(spaces, 0)
+	spaceIndex := -1
+	spaceSize := 0
+	for j := 0; j < len(a); j++ {
+		if a[j] != '.' {
+			if spaceIndex >= 0 {
+				r = append(r, &space{i: spaceIndex, size: spaceSize})
+			}
+			spaceIndex = -1
+			spaceSize = 0
+		} else {
+			if spaceIndex == -1 {
+				spaceIndex = j
+			}
+			spaceSize += 1
+		}
+	}
+	return r
+}
+
+func (a runes) findLastBlockSize(i int) (int, int) {
 	size := 0
 out:
-	for ; i >= 0; i-- {
+	for ; i > 0; i-- {
 		if a[i] != '.' {
 			c := a[i]
 			for j := i; j >= 0; j-- {
@@ -105,35 +142,34 @@ out:
 	return i - size + 1, size
 }
 
-func findFirstSpaceBlock(a []rune, size, i int) int {
-	if size <= 0 {
-		return -1
-	}
-	spaceSize := 0
-	for j := 0; j < i; j++ {
-		if a[j] != '.' {
-			spaceSize = 0
-		} else {
-			if spaceSize == size-1 {
-				return j - spaceSize
+func (s *spaces) findFirstSpaceBlock(size, i int) int {
+	for j, space := range *s {
+		if space.i > i {
+			return -1
+		}
+		if space.size >= size {
+			space.size -= size
+			ans := space.i
+			space.i += size
+			if space.size == 0 {
+				*s = slices.Delete(*s, j, j+1)
 			}
-			spaceSize += 1
+			return ans
 		}
 	}
 	return -1
 }
 
-func swapBlock(a []rune, i, j, size int) {
-	c := a[i]
-	for k := j; k < j+size; k++ {
-		a[k] = c
+func (a runes) swapBlock(i, j, size int, wg *sync.WaitGroup) {
+	jm := j + size
+	for ; j < jm; i, j = i+1, j+1 {
+		a[j], a[i] = a[i], a[j]
 	}
-	for k := i; k < i+size; k++ {
-		a[k] = '.'
-	}
+	// log.Debugf("Updated slice by moving [%2d:%2d] to [%2d:%2d]: %v", i, i+size, j, j+size, a.print())
+	wg.Done()
 }
 
-func print(a []rune) string {
+func (a runes) print() string {
 	var s string
 	for _, c := range a {
 		s += string(c)
