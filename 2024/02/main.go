@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-
-	// input := "test.txt"
 	input := "input.txt"
 
 	i := countSafeReports(input, isSafe)

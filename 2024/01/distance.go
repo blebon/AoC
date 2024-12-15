@@ -4,12 +4,10 @@ import (
 	"sort"
 
 	util "github.com/blebon/AoC/2024/util"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func readColumns(input string) ([]int, []int, error) {
-	log := logrus.New()
-
 	fields, err := util.ReadSpaceSeparatedFileToInt(input)
 	if err != nil {
 		log.Errorf("error reading input file: %v", err)
@@ -43,7 +41,6 @@ func findDistance(input string) int {
 		}
 	}
 
-	log := logrus.New()
 	log.Infof("Distance: %v", ans)
 
 	return ans
@@ -79,7 +76,6 @@ func findSimilarity(input string) int {
 		}
 	}
 
-	log := logrus.New()
 	log.Infof("Similarity: %v", ans)
 
 	return ans

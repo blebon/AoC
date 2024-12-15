@@ -135,8 +135,6 @@ func (w *Warehouse) pushBlocks(np, d image.Point) {
 			w.moveRobot(np)
 			w.Board[next] = 'O'
 			return
-		} else {
-			return
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 )
 
 const TEST string = "test.txt"
+const TEST_FMT string = "wrong %s: want %d, got %d"
 
 func TestPart1(t *testing.T) {
 	tiles_x = 11
@@ -13,6 +14,6 @@ func TestPart1(t *testing.T) {
 	var want int = 12
 	got := getSafetyNumber(TEST, 100)
 	if want != got {
-		t.Errorf("wrong safety number: want %d, got %d", want, got)
+		t.Errorf(TEST_FMT, "safety number", want, got)
 	}
 }

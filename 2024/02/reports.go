@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/blebon/AoC/2024/util"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func readColumns(input string) ([][]int, error) {
@@ -10,7 +10,6 @@ func readColumns(input string) ([][]int, error) {
 }
 
 func isSafe(report []int) bool {
-	log := logrus.New()
 	log.Debugf("isSafe report: %v", report)
 
 	if len(report) <= 1 {
@@ -57,8 +56,6 @@ func isSafeWithDampener(report []int) bool {
 type fn func([]int) bool
 
 func countSafeReports(input string, f fn) int {
-	log := logrus.New()
-
 	reports, err := readColumns(input)
 	if err != nil {
 		log.Errorf("error reading columns: %v", err)

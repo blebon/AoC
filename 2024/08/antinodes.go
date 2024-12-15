@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/blebon/AoC/2024/util"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type antennas struct {
@@ -23,8 +23,6 @@ func getAntinodes(f string, withHarmonics bool) int64 {
 }
 
 func getFields(f string) antennas {
-	log := logrus.New()
-
 	lines, err := util.ReadFile(f)
 	if err != nil {
 		log.Fatalf("error reading input file: %v", err)

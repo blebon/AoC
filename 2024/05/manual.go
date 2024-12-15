@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func readUpdates(f string) ([]string, error) {
@@ -25,8 +25,6 @@ func readUpdates(f string) ([]string, error) {
 }
 
 func getMiddleSum(f string, ordered bool) int {
-	log := logrus.New()
-
 	manual, err := readUpdates(f)
 	if err != nil {
 		log.Fatalf("error reading file: %v", err)
