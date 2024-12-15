@@ -37,9 +37,7 @@ type Quadrants map[image.Point]int
 
 func getRobots(f string) Robots {
 	l, err := util.ReadFile(f)
-	if err != nil {
-		log.Fatalf("error reading input file: %v", err)
-	}
+	util.FileError(err)
 	robots := make(Robots, 0, len(l))
 	for _, s := range l {
 		p, v, q := image.Point{}, image.Point{}, image.Point{}
