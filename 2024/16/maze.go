@@ -10,16 +10,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	TURN int = 1000
+	MOVE int = 1
+)
+
 var DEBUG bool = false
 
-type Deer struct {
+type Sprite struct {
 	Position  image.Point
 	Direction image.Point
 }
 
 type Maze struct {
 	Board     map[image.Point]rune
-	Deer      Deer
+	Start     Sprite
 	Goal      image.Point
 	MinScore  int
 	InMinPath map[image.Point]bool
@@ -28,9 +33,8 @@ type Maze struct {
 }
 
 type Path struct {
-	Deer  Deer
-	Moves int
-	Turns int
+	Deer  Sprite
+	Score int
 	Tiles map[image.Point]bool
 }
 
@@ -39,7 +43,7 @@ func getMaze(f string) Maze {
 	util.FileError(err)
 
 	board := map[image.Point]rune{}
-	deer := Deer{Direction: image.Point{1, 0}}
+	deer := Sprite{Direction: image.Point{1, 0}}
 	goal := image.Point{}
 
 	height := len(l)
@@ -62,7 +66,7 @@ func getMaze(f string) Maze {
 
 	m := Maze{
 		Board:     board,
-		Deer:      deer,
+		Start:     deer,
 		Goal:      goal,
 		MinScore:  int(^uint(0) >> 1),
 		InMinPath: map[image.Point]bool{},
@@ -78,18 +82,17 @@ func getMaze(f string) Maze {
 }
 
 func (p *Path) getScore() int {
-	return 1000*p.Turns + p.Moves
+	return p.Score
 }
 
 func (m *Maze) searchShortestPath() {
 	q := []Path{{
-		Deer:  m.Deer,
-		Moves: 0,
-		Turns: 0,
-		Tiles: map[image.Point]bool{m.Deer.Position: true},
+		Deer:  m.Start,
+		Score: 0,
+		Tiles: map[image.Point]bool{m.Start.Position: true},
 	}}
 
-	distance := map[Deer]int{}
+	distance := map[Sprite]int{}
 
 	for len(q) > 0 {
 		sort.Slice(q, func(i, j int) bool {
@@ -99,16 +102,14 @@ func (m *Maze) searchShortestPath() {
 		p := q[0]
 		q = q[1:]
 
-		score := p.getScore()
-
 		v, ok := distance[p.Deer]
-		if ok && v < score {
+		if ok && v < p.getScore() {
 			continue
 		}
-		distance[p.Deer] = score
+		distance[p.Deer] = p.getScore()
 
-		if p.Deer.Position == m.Goal && score <= m.MinScore {
-			m.MinScore = score
+		if p.Deer.Position == m.Goal && p.getScore() <= m.MinScore {
+			m.MinScore = p.getScore()
 			maps.Copy(m.InMinPath, p.Tiles)
 			continue
 		}
@@ -117,18 +118,17 @@ func (m *Maze) searchShortestPath() {
 			continue
 		}
 
-		for dir, addTurn := range map[image.Point]int{
-			p.Deer.Direction: 0,
-			{-p.Deer.Direction.Y, p.Deer.Direction.X}: 1,
-			{p.Deer.Direction.Y, -p.Deer.Direction.X}: 1,
+		for dir, addScore := range map[image.Point]int{
+			p.Deer.Direction: MOVE,
+			{-p.Deer.Direction.Y, p.Deer.Direction.X}: TURN + MOVE,
+			{p.Deer.Direction.Y, -p.Deer.Direction.X}: TURN + MOVE,
 		} {
 			np := p.Deer.Position.Add(dir)
 			newTiles := maps.Clone(p.Tiles)
 			newTiles[np] = true
 			q = append(q, Path{
-				Deer:  Deer{Position: np, Direction: dir},
-				Moves: p.Moves + 1,
-				Turns: p.Turns + addTurn,
+				Deer:  Sprite{Position: np, Direction: dir},
+				Score: p.getScore() + addScore,
 				Tiles: newTiles,
 			})
 		}
