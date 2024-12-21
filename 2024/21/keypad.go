@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"strings"
-	"sync"
 
 	"github.com/blebon/AoC/2024/util"
 )
@@ -27,21 +26,27 @@ const (
 )
 
 type Keypad struct {
-	Layout map[rune]image.Point
-	Start  rune
-	Name   string
+	Layout    map[rune]image.Point
+	Start     rune
+	Name      string
+	PathCache map[string]string
+	SeqCache  map[string]string
 }
 
 var NumericKeypad Keypad = Keypad{
-	Layout: numericKeypad,
-	Start:  'A',
-	Name:   NUMERIC,
+	Layout:    numericKeypad,
+	Start:     'A',
+	Name:      NUMERIC,
+	PathCache: map[string]string{},
+	SeqCache:  map[string]string{},
 }
 
 var DirectionalKeypad Keypad = Keypad{
-	Layout: directionalKeypad,
-	Start:  'A',
-	Name:   DIRECTIONAL,
+	Layout:    directionalKeypad,
+	Start:     'A',
+	Name:      DIRECTIONAL,
+	PathCache: map[string]string{},
+	SeqCache:  map[string]string{},
 }
 
 func getComplexitySum(f string, robots int) int {
@@ -86,10 +91,10 @@ func getNumericSequenceLength(code string, robots int, robot int, numericSeqCach
 		return len(seq)
 	}
 
-	steps := splitSequence(seq)
+	seqs := splitSequence(seq)
 	l := 0
-	for _, step := range steps {
-		c := getNumericSequenceLength(step, robots, robot+1, numericSeqCache)
+	for _, seq := range seqs {
+		c := getNumericSequenceLength(seq, robots, robot+1, numericSeqCache)
 		l += c
 	}
 
@@ -98,32 +103,24 @@ func getNumericSequenceLength(code string, robots int, robot int, numericSeqCach
 }
 
 func splitSequence(seq string) []string {
-	var res []string
-	var cur string
+	var seqs []string
+	var s string
 
 	for _, c := range seq {
-		cur += string(c)
+		s += string(c)
 		if c == 'A' {
-			res = append(res, cur)
-			cur = ""
+			seqs = append(seqs, s)
+			s = ""
 		}
 	}
 
-	return res
+	return seqs
 }
 
-var seqCache = struct {
-	sync.RWMutex
-	data map[string]string
-}{data: make(map[string]string)}
-
 func (k *Keypad) generateSequence(code string) string {
-	seqCache.RLock()
-	if ans, ok := seqCache.data[code]; ok {
-		seqCache.RUnlock()
+	if ans, ok := k.SeqCache[code]; ok {
 		return ans
 	}
-	seqCache.RUnlock()
 
 	var sequence []string
 	start := k.Start
@@ -134,33 +131,21 @@ func (k *Keypad) generateSequence(code string) string {
 	}
 
 	ans := strings.Join(sequence, "")
-	seqCache.Lock()
-	seqCache.data[code] = ans
-	seqCache.Unlock()
+	k.SeqCache[code] = ans
 	return ans
 }
 
-var pathCache = struct {
-	sync.RWMutex
-	data map[string]string
-}{data: make(map[string]string)}
-
 func (k *Keypad) getPath(target rune, start rune) string {
 	cacheKey := fmt.Sprintf("%v-%v", string(start), string(target))
-	pathCache.RLock()
-	if path, ok := pathCache.data[cacheKey]; ok {
-		pathCache.RUnlock()
+	if path, ok := k.PathCache[cacheKey]; ok {
 		return path
 	}
-	pathCache.RUnlock()
 
 	paths := k.getDirections(start, target)
 	path := strings.Join(paths, "")
 	path += "A"
 
-	pathCache.Lock()
-	pathCache.data[cacheKey] = path
-	pathCache.Unlock()
+	k.PathCache[cacheKey] = path
 
 	return path
 }
