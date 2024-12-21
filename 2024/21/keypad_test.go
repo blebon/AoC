@@ -81,3 +81,12 @@ func TestPart1(t *testing.T) {
 		t.Errorf(TEST_FMT, "complexity sum", want, got)
 	}
 }
+
+func TestPart2(t *testing.T) {
+	log.Debugf("\n%v", TEST)
+	want := 154115708116294
+	got := getComplexitySum(TEST, 25)
+	if want != got {
+		t.Errorf(TEST_FMT, "complexity sum", want, got)
+	}
+}
